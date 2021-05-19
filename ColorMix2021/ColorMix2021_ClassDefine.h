@@ -217,7 +217,7 @@ private:
 	int len_;
 	Color color_;
 public:
-	//Beam(int x = 1, int y = 1, int dir = 0);
+	Beam(int x = 0, int y = 0, int dir = 0, int r = 0, int g = 0, int b = 0);
 	void SetBeam(int x, int y, int dir, int r, int g, int b);
 	Pos CheckBeamEnd();
 	Pos GetBeamSource() const;
@@ -232,13 +232,13 @@ public:
 };
 vector <Beam> lightBeam; //번호는 1번부터 시작. i번 beam은 인덱스 i-1에 위치함.
 
-/*Beam::Beam(int x, int y, int dir)
+Beam::Beam(int x, int y, int dir, int r, int g, int b)
 {
-	source_.SetX(x);
-	source_.SetY(y);
+	source_.SetX(x), source_.SetY(y);
 	dir_ = dir;
 	len_ = -1;
-}*/
+	color_.SetR(r), color_.SetG(g), color_.SetB(b);
+}
 void Beam::SetBeam(int x, int y, int dir, int r, int g, int b)
 {
 	source_.SetX(x);
@@ -324,15 +324,7 @@ namespace Simulation
 
 void Simulation::CreateShooterBeam(int x, int y)
 {
-	Beam new_beam;
-	int shooter_r, shooter_g, shooter_b;
-	shooter_r = scene.GetR(x, y);
-	shooter_g = scene.GetG(x, y);
-	shooter_b = scene.GetB(x, y);
-	int shooter_dir;
-	shooter_dir = scene.GetDir(x, y);
-
-	new_beam.SetBeam(x, y, shooter_dir, shooter_r, shooter_g, shooter_b);
+	Beam new_beam(x, y, scene.GetDir(x, y), scene.GetR(x, y), scene.GetG(x, y), scene.GetB(x, y));
 	lightBeam.push_back(new_beam);
 }
 unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된 광선의 방향, 새로 생성된 광선의 유무 반환
@@ -340,21 +332,17 @@ unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
 	int xpos, ypos, beam_dir, beam_r, beam_g, beam_b;
-	Pos prior_end;
-	prior_end = prior_beam->GetBeamEnd();
+	Pos prior_end = prior_beam->GetBeamEnd();
 	xpos = prior_end.GetX(), ypos = prior_end.GetY();
 	beam_dir = prior_beam->GetBeamDir();
 	beam_r = prior_beam->GetR();
 	beam_g = prior_beam->GetG();
 	beam_b = prior_beam->GetB();
 
-	Beam new_beam;
-	int mirror_r, mirror_g, mirror_b;
+	int mirror_r, mirror_g, mirror_b, mirror_dir;
 	mirror_r = scene.GetR(xpos, ypos);
 	mirror_g = scene.GetG(xpos, ypos);
 	mirror_b = scene.GetB(xpos, ypos);
-
-	int mirror_dir;
 	mirror_dir = scene.GetDir(xpos, ypos);
 
 	int new_beam_dir;
@@ -384,7 +372,7 @@ unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 		printf("Simualtion::CreateMirroredBeam ERROR, invalid direction\n");
 		break;
 	}
-	new_beam.SetBeam(xpos, ypos, new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
+	Beam new_beam(xpos, ypos, new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
 
 	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환
 	{
@@ -405,14 +393,11 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
 	int xpos, ypos, beam_dir;
-	Pos prior_end;
-	prior_end = prior_beam->GetBeamEnd();
+	Pos prior_end = prior_beam->GetBeamEnd();
 	xpos = prior_end.GetX(), ypos = prior_end.GetY();
 	beam_dir = prior_beam->GetBeamDir();
 
-	Beam* new_beam = new Beam;
-	int combiner_dir;
-	combiner_dir = scene.GetDir(xpos, ypos);
+	int combiner_dir = scene.GetDir(xpos, ypos);
 
 	int up = 0, left = 0, down = 0, right = 0;
 	Beam* beam_up = NULL, * beam_left = NULL, * beam_down = NULL, * beam_right = NULL;
@@ -467,15 +452,15 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 			total_b = total_b || beam_right->GetB();
 		}
 	}
-	new_beam->SetBeam(xpos, ypos, combiner_dir, total_r, total_g, total_b);
+	Beam new_beam(xpos, ypos, combiner_dir, total_r, total_g, total_b);
 
 	if (scene.GetInfo(xpos, ypos, combiner_dir) == 0)
 	{
-		lightBeam.push_back(*new_beam);
+		lightBeam.push_back(new_beam);
 		scene.SetInfo(xpos, ypos, lightBeam.size(), combiner_dir);
 	}
 	else
-		lightBeam[scene.GetInfo(xpos, ypos, combiner_dir) - 1] = *new_beam;
+		lightBeam[scene.GetInfo(xpos, ypos, combiner_dir) - 1] = new_beam;
 	return true;
 }
 bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B)
@@ -483,8 +468,7 @@ bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
 	int xpos, ypos;
-	Pos prior_end;
-	prior_end = prior_beam->GetBeamEnd();
+	Pos prior_end = prior_beam->GetBeamEnd();
 	xpos = prior_end.GetX(), ypos = prior_end.GetY();
 
 	int beam_dir, beam_r, beam_g, beam_b;
@@ -604,8 +588,6 @@ void Simulation::SimulateBeam(int num)
 }
 void Simulation::SimulateAll()
 {
-	//struckTargets = 0;
-
 	lightBeam.clear();
 	scene.ClearInfo();
 	for (int i = 0; i < MAP_WIDTH; i++)

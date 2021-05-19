@@ -1,4 +1,4 @@
-#include "ColorMix2021_ClassDefine.h"
+#include "ColorMix2021_Function.h"
 
 int main(int argc, char* args[])
 {

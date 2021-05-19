@@ -26,7 +26,10 @@
     <ClInclude Include="ColorMix2021_Define.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ColorMix2021_ClassDefine.h">
+    <ClInclude Include="ColorMix2021_Class.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorMix2021_Function.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

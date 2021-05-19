@@ -146,8 +146,9 @@
     <ClCompile Include="ColorMix2021.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ColorMix2021_ClassDefine.h" />
+    <ClInclude Include="ColorMix2021_Class.h" />
     <ClInclude Include="ColorMix2021_Define.h" />
+    <ClInclude Include="ColorMix2021_Function.h" />
     <ClInclude Include="ColorMix2021_SDLSetup.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

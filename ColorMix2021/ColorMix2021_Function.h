@@ -3,18 +3,18 @@
 #include "ColorMix2021_SDLSetup.h"
 #include "ColorMix2021_Class.h"
 
-namespace Simulation
+namespace simulation
 {
 	void CreateShooterBeam(Pos pos);
 	void CreateShooterBeam(int x, int y);
 	unsigned char CreateMirroredBeam(int num);
-	bool CreateCombinedBeam(int num);
+	void CreateCombinedBeam(int num);
 	bool CreateSeparatedBeam(int num, int color);
 	void SimulateBeam(int num);
 	void SimulateAll();
 };
 
-namespace Render
+namespace render
 {
 	const Uint8 alpha_value = 160;
 
@@ -24,17 +24,17 @@ namespace Render
 	void RenderAll();
 };
 
-void Simulation::CreateShooterBeam(Pos pos)
+void simulation::CreateShooterBeam(Pos pos)
 {
 	Beam new_beam(pos.GetX(), pos.GetY(), scene.GetDir(pos), scene.GetR(pos), scene.GetG(pos), scene.GetB(pos));
 	lightBeam.push_back(new_beam);
 }
-void Simulation::CreateShooterBeam(int x, int y)
+void simulation::CreateShooterBeam(int x, int y)
 {
 	Beam new_beam(x, y, scene.GetDir(x, y), scene.GetR(x, y), scene.GetG(x, y), scene.GetB(x, y));
 	lightBeam.push_back(new_beam);
 }
-unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된 광선의 방향, 새로 생성된 광선의 유무 반환
+unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된 광선의 방향, 새로 생성된 광선의 유무 반환
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
@@ -53,24 +53,24 @@ unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	int new_beam_dir;
 	switch (mirror_dir)
 	{
-	case UP_LEFT:
-		if (beam_dir == DOWN) new_beam_dir = LEFT;
-		else if (beam_dir == RIGHT) new_beam_dir = UP;
+	case dir_diagonal::UP_LEFT:
+		if (beam_dir == dir_straight::DOWN) new_beam_dir = dir_straight::LEFT;
+		else if (beam_dir == dir_straight::RIGHT) new_beam_dir = dir_straight::UP;
 		else return false;
 		break;
-	case LEFT_DOWN:
-		if (beam_dir == RIGHT) new_beam_dir = DOWN;
-		else if (beam_dir == UP) new_beam_dir = LEFT;
+	case dir_diagonal::LEFT_DOWN:
+		if (beam_dir == dir_straight::RIGHT) new_beam_dir = dir_straight::DOWN;
+		else if (beam_dir == dir_straight::UP) new_beam_dir = dir_straight::LEFT;
 		else return false;
 		break;
-	case DOWN_RIGHT:
-		if (beam_dir == UP) new_beam_dir = RIGHT;
-		else if (beam_dir == LEFT) new_beam_dir = DOWN;
+	case dir_diagonal::DOWN_RIGHT:
+		if (beam_dir == dir_straight::UP) new_beam_dir = dir_straight::RIGHT;
+		else if (beam_dir == dir_straight::LEFT) new_beam_dir = dir_straight::DOWN;
 		else return false;
 		break;
-	case RIGHT_UP:
-		if (beam_dir == LEFT) new_beam_dir = UP;
-		else if (beam_dir == DOWN) new_beam_dir = RIGHT;
+	case dir_diagonal::RIGHT_UP:
+		if (beam_dir == dir_straight::LEFT) new_beam_dir = dir_straight::UP;
+		else if (beam_dir == dir_straight::DOWN) new_beam_dir = dir_straight::RIGHT;
 		else return false;
 		break;
 	default:
@@ -88,12 +88,11 @@ unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 		}
 		else
 			lightBeam[scene.GetInfo(prior_end, new_beam_dir) - 1] = new_beam;//아니라면 이미 존재하는 beam을 업데이트
-
 		return (new_beam_dir << 4) | true;
 	}
 	else return false;
 }
-bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
+void simulation::CreateCombinedBeam(int num)
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
@@ -107,14 +106,11 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 	Beam* beam_up = NULL, * beam_left = NULL, * beam_down = NULL, * beam_right = NULL;
 	int total_r = 0, total_g = 0, total_b = 0;
 
-	if (combiner_dir == (beam_dir + 2) % 4) //출력 장치로 전달되었다면 종료
-		return false;
-
 	scene.SetInfo(prior_end, num, (beam_dir + 2) % 4);//beam_dir과 반대값 전달
 
-	if (combiner_dir != UP)
+	if (combiner_dir != dir_straight::UP)
 	{
-		up = scene.GetInfo(prior_end, UP);
+		up = scene.GetInfo(prior_end, dir_straight::UP);
 		if (up != 0)
 		{
 			beam_up = &lightBeam[up - 1];
@@ -123,9 +119,9 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 			total_b |= beam_up->GetB();
 		}
 	}
-	if (combiner_dir != LEFT)
+	if (combiner_dir != dir_straight::LEFT)
 	{
-		left = scene.GetInfo(prior_end, LEFT);
+		left = scene.GetInfo(prior_end, dir_straight::LEFT);
 		if (left != 0)
 		{
 			beam_left = &lightBeam[left - 1];
@@ -134,9 +130,9 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 			total_b |= beam_left->GetB();
 		}
 	}
-	if (combiner_dir != DOWN)
+	if (combiner_dir != dir_straight::DOWN)
 	{
-		down = scene.GetInfo(prior_end, DOWN);
+		down = scene.GetInfo(prior_end, dir_straight::DOWN);
 		if (down != 0)
 		{
 			beam_down = &lightBeam[down - 1];
@@ -145,9 +141,9 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 			total_b |= beam_down->GetB();
 		}
 	}
-	if (combiner_dir != RIGHT)
+	if (combiner_dir != dir_straight::RIGHT)
 	{
-		right = scene.GetInfo(prior_end, RIGHT);
+		right = scene.GetInfo(prior_end, dir_straight::RIGHT);
 		if (right != 0)
 		{
 			beam_right = &lightBeam[right - 1];
@@ -165,9 +161,8 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 	}
 	else
 		lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1] = new_beam;
-	return true;
 }
-bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B)
+bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B)
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
@@ -199,6 +194,7 @@ bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 		break;
 	default:
 		printf("Error: this color is not vaild.");
+		new_beam_dir = -1;
 	}
 
 	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환
@@ -215,7 +211,7 @@ bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 	}
 	else return false;
 }
-void Simulation::SimulateBeam(int num)
+void simulation::SimulateBeam(int num)
 {
 	Pos end = lightBeam[num - 1].CheckBeamEnd();
 	switch (scene.GetType(end))
@@ -236,19 +232,21 @@ void Simulation::SimulateBeam(int num)
 		else return;
 		break;
 	}
-	case type::COMBINER://무한루프 문제 발생 가능
+	case type::COMBINER://can trigger infinte loop
 	{
-		if (CreateCombinedBeam(num))
+		if (scene.GetDir(end) == (lightBeam[num - 1].GetBeamDir() + 2) % 4)
+			return;
+		else
 		{
+			CreateCombinedBeam(num);
 			num = scene.GetInfo(end, scene.GetDir(end));
 			SimulateBeam(num);
 		}
-		else return;
 		break;
 	}
 	case type::SEPARATOR:
 	{
-		if (lightBeam[num - 1].GetBeamDir() != scene.GetDir(end))//입력 방향이 올바르지 않다면
+		if (lightBeam[num - 1].GetBeamDir() != scene.GetDir(end))//if input direction is wrong
 			return;
 		int new_num;
 		if (CreateSeparatedBeam(num, RED))
@@ -284,7 +282,7 @@ void Simulation::SimulateBeam(int num)
 		return;
 	}
 }
-void Simulation::SimulateAll()
+void simulation::SimulateAll()
 {
 	lightBeam.clear();
 	scene.ClearInfo();
@@ -301,7 +299,7 @@ void Simulation::SimulateAll()
 	}
 }
 
-void Render::RenderBackground()
+void render::RenderBackground()
 {
 	for (int i = 0; i < MAP_WIDTH; i++)
 	{
@@ -311,7 +309,7 @@ void Render::RenderBackground()
 		}
 	}
 }
-void Render::RenderBeam()
+void render::RenderBeam()
 {
 	for (unsigned int i = 0; i < lightBeam.size(); i++)
 	{
@@ -349,7 +347,7 @@ void Render::RenderBeam()
 
 		switch (dir)
 		{
-		case UP:
+		case dir_straight::UP:
 			if (!render_start)
 				y--;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -360,7 +358,7 @@ void Render::RenderBeam()
 				y--;
 			}
 			break;
-		case LEFT:
+		case dir_straight::LEFT:
 			if (!render_start)
 				x--;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -371,7 +369,7 @@ void Render::RenderBeam()
 				x--;
 			}
 			break;
-		case DOWN:
+		case dir_straight::DOWN:
 			if (!render_start)
 				y++;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -382,7 +380,7 @@ void Render::RenderBeam()
 				y++;
 			}
 			break;
-		case RIGHT:
+		case dir_straight::RIGHT:
 			if (!render_start)
 				x++;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -399,7 +397,7 @@ void Render::RenderBeam()
 		}
 	}
 }
-void Render::RenderBlock()
+void render::RenderBlock()
 {
 	for (int i = 0; i < MAP_WIDTH; i++)
 	{
@@ -422,22 +420,22 @@ void Render::RenderBlock()
 			case type::MIRROR:
 				switch (scene.GetDir(i, j))
 				{
-				case UP_LEFT:
+				case dir_diagonal::UP_LEFT:
 					PNG_Image[image::MIRROR_BASE_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_0].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case LEFT_DOWN:
+				case dir_diagonal::LEFT_DOWN:
 					PNG_Image[image::MIRROR_BASE_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_1].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case DOWN_RIGHT:
+				case dir_diagonal::DOWN_RIGHT:
 					PNG_Image[image::MIRROR_BASE_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_2].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case RIGHT_UP:
+				case dir_diagonal::RIGHT_UP:
 					PNG_Image[image::MIRROR_BASE_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_3].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
@@ -450,22 +448,22 @@ void Render::RenderBlock()
 			case type::SHOOTER:
 				switch (scene.GetDir(i, j))
 				{
-				case UP:
+				case dir_straight::UP:
 					PNG_Image[image::SHOOTER_BASE_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_0].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case LEFT:
+				case dir_straight::LEFT:
 					PNG_Image[image::SHOOTER_BASE_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_1].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case DOWN:
+				case dir_straight::DOWN:
 					PNG_Image[image::SHOOTER_BASE_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_2].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case RIGHT:
+				case dir_straight::RIGHT:
 					PNG_Image[image::SHOOTER_BASE_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_3].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
@@ -478,16 +476,16 @@ void Render::RenderBlock()
 			case type::COMBINER:
 				switch (scene.GetDir(i, j))
 				{
-				case UP:
+				case dir_straight::UP:
 					PNG_Image[image::COMBINER_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case LEFT:
+				case dir_straight::LEFT:
 					PNG_Image[image::COMBINER_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case DOWN:
+				case dir_straight::DOWN:
 					PNG_Image[image::COMBINER_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case RIGHT:
+				case dir_straight::RIGHT:
 					PNG_Image[image::COMBINER_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
@@ -498,16 +496,16 @@ void Render::RenderBlock()
 			case type::SEPARATOR:
 				switch (scene.GetDir(i, j))
 				{
-				case UP:
+				case dir_straight::UP:
 					PNG_Image[image::SEPARATOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case LEFT:
+				case dir_straight::LEFT:
 					PNG_Image[image::SEPARATOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case DOWN:
+				case dir_straight::DOWN:
 					PNG_Image[image::SEPARATOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case RIGHT:
+				case dir_straight::RIGHT:
 					PNG_Image[image::SEPARATOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
@@ -550,7 +548,7 @@ void Render::RenderBlock()
 		}
 	}
 }
-void Render::RenderAll()
+void render::RenderAll()
 {
 	//Clear screen
 	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);

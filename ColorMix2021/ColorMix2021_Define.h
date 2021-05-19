@@ -22,14 +22,20 @@ const int Y_OFFSET = (SCREEN_HEIGHT - 48 * MAP_HEIGHT) / 2;
 /*texture color code #8000ff is for color keying.*/
 /*color code variants: 0x80, 0xb0, 0xff, 0x58*/
 
-enum direction_a
+namespace dir_straight
 {
-	UP, LEFT, DOWN, RIGHT
-};
-enum direction_b
+	enum dir_straight
+	{
+		UP, LEFT, DOWN, RIGHT
+	};
+}
+namespace dir_diagonal
 {
-	UP_LEFT, LEFT_DOWN, DOWN_RIGHT, RIGHT_UP
-};
+	enum dir_diagonal
+	{
+		UP_LEFT, LEFT_DOWN, DOWN_RIGHT, RIGHT_UP
+	};
+}
 namespace type
 {
 	enum block_type

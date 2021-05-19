@@ -68,10 +68,10 @@ int main(int argc, char* args[])
 
 				if (change)
 				{
-					Simulation::SimulateAll();
+					simulation::SimulateAll();
 					change = false;
 				}
-				Render::RenderAll();
+				render::RenderAll();
 			}
 		}
 

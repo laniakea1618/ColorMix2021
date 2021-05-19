@@ -3,6 +3,83 @@
 #include "ColorMix2021_SDLSetup.h"
 #include "ColorMix2021_Define.h"
 
+class Pos
+{
+private:
+	int x_;
+	int y_;
+public:
+	int GetX() const;
+	int GetY() const;
+	void SetX(int x);
+	void SetY(int y);
+};
+int Pos::GetX() const
+{
+	return x_;
+}
+int Pos::GetY() const
+{
+	return y_;
+}
+void Pos::SetX(int x)
+{
+	if (x < 0 || x >= MAP_WIDTH)
+		printf("Pos::SetX Error");
+	x_ = x;
+}
+void Pos::SetY(int y)
+{
+	if (y < 0 || y >= MAP_HEIGHT)
+		printf("Pos::SetY Error");
+	y_ = y;
+}
+
+class Color
+{
+private:
+	int r_;
+	int g_;
+	int b_;
+public:
+	int GetR() const;
+	int GetG() const;
+	int GetB() const;
+	void SetR(int r);
+	void SetG(int g);
+	void SetB(int b);
+};
+int Color::GetR() const
+{
+	return r_;
+}
+int Color::GetG() const
+{
+	return g_;
+}
+int Color::GetB() const
+{
+	return b_;
+}
+void Color::SetR(int r)
+{
+	if (r != 0 && r != 1)
+		printf("Pos::SetR Error");
+	r_ = r;
+}
+void Color::SetG(int g)
+{
+	if (g != 0 && g != 1)
+		printf("Pos::SetG Error");
+	g_ = g;
+}
+void Color::SetB(int b)
+{
+	if (b != 0 && b != 1)
+		printf("Pos::SetB Error");
+	b_ = b;
+}
+
 class Scene
 {
 private:
@@ -129,83 +206,6 @@ int Scene::GetInfo(int x, int y, int dir) const
 		printf("Scene::GetInfo ERROR, invalid direction\n");
 		return -1;
 	}
-}
-
-class Pos
-{
-private:
-	int x_;
-	int y_;
-public:
-	int GetX() const;
-	int GetY() const;
-	void SetX(int x);
-	void SetY(int y);
-};
-int Pos::GetX() const
-{
-	return x_;
-}
-int Pos::GetY() const
-{
-	return y_;
-}
-void Pos::SetX(int x)
-{
-	if (x < 0 || x >= MAP_WIDTH)
-		printf("Pos::SetX Error");
-	x_ = x;
-}
-void Pos::SetY(int y)
-{
-	if (y < 0 || y >= MAP_HEIGHT)
-		printf("Pos::SetY Error");
-	y_ = y;
-}
-
-class Color
-{
-private:
-	int r_;
-	int g_;
-	int b_;
-public:
-	int GetR() const;
-	int GetG() const;
-	int GetB() const;
-	void SetR(int r);
-	void SetG(int g);
-	void SetB(int b);
-};
-int Color::GetR() const
-{
-	return r_;
-}
-int Color::GetG() const
-{
-	return g_;
-}
-int Color::GetB() const
-{
-	return b_;
-}
-void Color::SetR(int r)
-{
-	if (r != 0 && r != 1)
-		printf("Pos::SetR Error");
-	r_ = r;
-}
-void Color::SetG(int g)
-{
-	if (g != 0 && g != 1)
-		printf("Pos::SetG Error");
-	g_ = g;
-}
-void Color::SetB(int b)
-{
-	if (b != 0 && b != 1)
-		printf("Pos::SetB Error");
-	b_ = b;
 }
 
 class Beam

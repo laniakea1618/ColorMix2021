@@ -7,6 +7,7 @@
 #include <SDL_image.h>
 #include <string>
 #include <cmath>
+#include <memory.h>
 
 using namespace std;
 
@@ -25,7 +26,7 @@ enum direction_a
 {
 	UP, LEFT, DOWN, RIGHT
 };
-enum drection_b
+enum direction_b
 {
 	UP_LEFT, LEFT_DOWN, DOWN_RIGHT, RIGHT_UP
 };

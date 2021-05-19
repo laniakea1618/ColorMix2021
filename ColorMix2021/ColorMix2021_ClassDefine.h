@@ -111,13 +111,7 @@ void Scene::SetInfo(int x, int y, int num, int dir)
 }
 void Scene::ClearInfo()
 {
-	for (int i = 0; i < MAP_WIDTH; i++)
-	{
-		for (int j = 0; j < MAP_HEIGHT; j++)
-		{
-			info_[j][i] = 0;
-		}
-	}
+	memset(scene.info_, 0, sizeof(scene.info_));
 }
 int Scene::GetInfo(int x, int y, int dir) const
 {
@@ -158,10 +152,14 @@ int Pos::GetY() const
 }
 void Pos::SetX(int x)
 {
+	if (x < 0 || x >= MAP_WIDTH)
+		printf("Pos::SetX Error");
 	x_ = x;
 }
 void Pos::SetY(int y)
 {
+	if (y < 0 || y >= MAP_HEIGHT)
+		printf("Pos::SetY Error");
 	y_ = y;
 }
 
@@ -193,14 +191,20 @@ int Color::GetB() const
 }
 void Color::SetR(int r)
 {
+	if (r != 0 && r != 1)
+		printf("Pos::SetR Error");
 	r_ = r;
 }
 void Color::SetG(int g)
 {
+	if (g != 0 && g != 1)
+		printf("Pos::SetG Error");
 	g_ = g;
 }
 void Color::SetB(int b)
 {
+	if (b != 0 && b != 1)
+		printf("Pos::SetB Error");
 	b_ = b;
 }
 
@@ -213,7 +217,7 @@ private:
 	int len_;
 	Color color_;
 public:
-	Beam(int x = 1, int y = 1, int dir = 0);
+	//Beam(int x = 1, int y = 1, int dir = 0);
 	void SetBeam(int x, int y, int dir, int r, int g, int b);
 	Pos CheckBeamEnd();
 	Pos GetBeamSource() const;
@@ -228,13 +232,13 @@ public:
 };
 vector <Beam> lightBeam; //번호는 1번부터 시작. i번 beam은 인덱스 i-1에 위치함.
 
-Beam::Beam(int x, int y, int dir)
+/*Beam::Beam(int x, int y, int dir)
 {
 	source_.SetX(x);
 	source_.SetY(y);
 	dir_ = dir;
 	len_ = -1;
-}
+}*/
 void Beam::SetBeam(int x, int y, int dir, int r, int g, int b)
 {
 	source_.SetX(x);

@@ -100,66 +100,156 @@ private:
 		{ 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001 },
 	};
 public:
+	unsigned short GetBlock(Pos pos) const;
 	unsigned short GetBlock(int x, int y) const;
+	void SetBlock(Pos pos, int number);
 	void SetBlock(int x, int y, int number);
+	int GetType(Pos pos) const;
 	int GetType(int x, int y) const;
+	int GetDir(Pos pos) const;
 	int GetDir(int x, int y) const;
+	int GetColor(Pos pos) const;
 	int GetColor(int x, int y) const;
+	int GetFixedInfo(Pos pos) const;
 	int GetFixedInfo(int x, int y) const;
+	int GetR(Pos pos) const;
 	int GetR(int x, int y) const;
+	int GetG(Pos pos) const;
 	int GetG(int x, int y) const;
+	int GetB(Pos pos) const;
 	int GetB(int x, int y) const;
-	void MoveBlock(int x1, int y1, int x2, int y2);
+	void SetInfo(Pos pos, int num, int dir);
 	void SetInfo(int x, int y, int num, int dir);
 	void ClearInfo();
+	int GetInfo(Pos pos, int dir) const;
 	int GetInfo(int x, int y, int dir) const;
 };
 Scene scene;
 
+unsigned short Scene::GetBlock(Pos pos) const
+{
+	if (pos.GetX() < 0|| pos.GetX() >= MAP_WIDTH || pos.GetY() < 0|| pos.GetY() >= MAP_HEIGHT)
+	{
+		return -1;
+		printf("Scene::GetBlock Error\n");
+	}
+	return map_[pos.GetY()][pos.GetX()];
+}
 unsigned short Scene::GetBlock(int x, int y) const
 {
-	if (0 <= x && x < MAP_WIDTH && 0 <= y && y < MAP_HEIGHT) return map_[y][x];
-	else return -1;
+	if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
+	{
+		return -1;
+		printf("Scene::GetBlock Error\n");
+	}
+	return map_[y][x];
+}
+void Scene::SetBlock(Pos pos, int number)
+{
+	if (pos.GetX() < 0 || pos.GetX() >= MAP_WIDTH || pos.GetY() < 0 || pos.GetY() >= MAP_HEIGHT)
+	{
+		printf("Scene::SetBlock Error\n");
+	}
+	map_[pos.GetY()][pos.GetX()] = number;
 }
 void Scene::SetBlock(int x, int y, int number)
 {
-	if (0 <= x && x < MAP_WIDTH && 0 <= y && y < MAP_HEIGHT)
-		map_[y][x] = number;
-	else printf("set block ERROR\n");
+	if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
+	{
+		printf("Scene::SetBlock Error\n");
+	}
+	map_[y][x] = number;
+}
+int Scene::GetType(Pos pos) const
+{
+	if (pos.GetX() < 0 || pos.GetX() >= MAP_WIDTH || pos.GetY() < 0 || pos.GetY() >= MAP_HEIGHT)
+	{
+		return -1;
+		printf("Scene::GetType Error\n");
+	}
+	return map_[pos.GetY()][pos.GetX()] & 0x000F;
 }
 int Scene::GetType(int x, int y) const
 {
-	if (0 <= x && x < MAP_WIDTH && 0 <= y && y < MAP_HEIGHT) return map_[y][x] & 0x000F;
-	else return -1;
+	if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
+	{
+		return -1;
+		printf("Scene::GetType Error\n");
+	}
+	return map_[y][x] & 0x000F;
+}
+int Scene::GetDir(Pos pos) const
+{
+	return (map_[pos.GetY()][pos.GetX()] & 0x00F0) >> 4;
 }
 int Scene::GetDir(int x, int y) const
 {
 	return (map_[y][x] & 0x00F0) >> 4;
 }
+int Scene::GetColor(Pos pos) const
+{
+	return (map_[pos.GetY()][pos.GetX()] & 0x0F00) >> 8;
+}
 int Scene::GetColor(int x, int y) const
 {
 	return (map_[y][x] & 0x0F00) >> 8;
+}
+int Scene::GetFixedInfo(Pos pos) const
+{
+	return (map_[pos.GetY()][pos.GetX()] & 0xF000) >> 12;
 }
 int Scene::GetFixedInfo(int x, int y) const
 {
 	return (map_[y][x] & 0xF000) >> 12;
 }
+int Scene::GetR(Pos pos) const
+{
+	return (map_[pos.GetY()][pos.GetX()] & 1024) >> 10;
+}
 int Scene::GetR(int x, int y) const
 {
 	return (map_[y][x] & 1024) >> 10;
+}
+int Scene::GetG(Pos pos) const
+{
+	return (map_[pos.GetY()][pos.GetX()] & 512) >> 9;
 }
 int Scene::GetG(int x, int y) const
 {
 	return (map_[y][x] & 512) >> 9;
 }
+int Scene::GetB(Pos pos) const
+{
+	return (map_[pos.GetY()][pos.GetX()] & 256) >> 8;
+}
 int Scene::GetB(int x, int y) const
 {
 	return (map_[y][x] & 256) >> 8;
 }
-void Scene::MoveBlock(int x1, int y1, int x2, int y2)
+void Scene::SetInfo(Pos pos, int num, int dir)
 {
-	map_[y2][x2] = map_[y1][x1];
-	map_[y1][x1] = 0x0000;
+	switch (dir)
+	{
+	case UP:
+		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0x00FFFFFF;//해당 자리 0으로 지우기
+		info_[pos.GetY()][pos.GetX()] += (num << 24);//해당 자리에 num정보 대입
+		break;
+	case LEFT:
+		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0xFF00FFFF;
+		info_[pos.GetY()][pos.GetX()] += (num << 16);
+		break;
+	case DOWN:
+		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0xFFFF00FF;
+		info_[pos.GetY()][pos.GetX()] += (num << 8);
+		break;
+	case RIGHT:
+		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0xFFFFFF00;
+		info_[pos.GetY()][pos.GetX()] += num;
+		break;
+	default:
+		printf("Scene::SetInfo ERROR, invalid direction\n");
+		break;
+	}
 }
 void Scene::SetInfo(int x, int y, int num, int dir)
 {
@@ -189,6 +279,23 @@ void Scene::SetInfo(int x, int y, int num, int dir)
 void Scene::ClearInfo()
 {
 	memset(scene.info_, 0, sizeof(scene.info_));
+}
+int Scene::GetInfo(Pos pos, int dir) const
+{
+	switch (dir)
+	{
+	case UP:
+		return (info_[pos.GetY()][pos.GetX()] & 0xFF000000) >> 24;
+	case LEFT:
+		return (info_[pos.GetY()][pos.GetX()] & 0x00FF0000) >> 16;
+	case DOWN:
+		return (info_[pos.GetY()][pos.GetX()] & 0x0000FF00) >> 8;
+	case RIGHT:
+		return (info_[pos.GetY()][pos.GetX()] & 0x000000FF);
+	default:
+		printf("Scene::GetInfo ERROR, invalid direction\n");
+		return -1;
+	}
 }
 int Scene::GetInfo(int x, int y, int dir) const
 {
@@ -314,6 +421,7 @@ void Beam::ShowBeamInfo() const
 
 namespace Simulation
 {
+	void CreateShooterBeam(Pos pos);
 	void CreateShooterBeam(int x, int y);
 	unsigned char CreateMirroredBeam(int num);
 	bool CreateCombinedBeam(int num);
@@ -322,6 +430,11 @@ namespace Simulation
 	void SimulateAll();
 };
 
+void Simulation::CreateShooterBeam(Pos pos)
+{
+	Beam new_beam(pos.GetX(), pos.GetY(), scene.GetDir(pos), scene.GetR(pos), scene.GetG(pos), scene.GetB(pos));
+	lightBeam.push_back(new_beam);
+}
 void Simulation::CreateShooterBeam(int x, int y)
 {
 	Beam new_beam(x, y, scene.GetDir(x, y), scene.GetR(x, y), scene.GetG(x, y), scene.GetB(x, y));
@@ -331,19 +444,17 @@ unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
-	int xpos, ypos, beam_dir, beam_r, beam_g, beam_b;
 	Pos prior_end = prior_beam->GetBeamEnd();
-	xpos = prior_end.GetX(), ypos = prior_end.GetY();
-	beam_dir = prior_beam->GetBeamDir();
-	beam_r = prior_beam->GetR();
-	beam_g = prior_beam->GetG();
-	beam_b = prior_beam->GetB();
 
-	int mirror_r, mirror_g, mirror_b, mirror_dir;
-	mirror_r = scene.GetR(xpos, ypos);
-	mirror_g = scene.GetG(xpos, ypos);
-	mirror_b = scene.GetB(xpos, ypos);
-	mirror_dir = scene.GetDir(xpos, ypos);
+	int beam_dir = prior_beam->GetBeamDir();
+	int beam_r = prior_beam->GetR();
+	int beam_g = prior_beam->GetG();
+	int beam_b = prior_beam->GetB();
+
+	int mirror_r = scene.GetR(prior_end);
+	int mirror_g = scene.GetG(prior_end);
+	int mirror_b = scene.GetB(prior_end);
+	int mirror_dir = scene.GetDir(prior_end);
 
 	int new_beam_dir;
 	switch (mirror_dir)
@@ -372,17 +483,17 @@ unsigned char Simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 		printf("Simualtion::CreateMirroredBeam ERROR, invalid direction\n");
 		break;
 	}
-	Beam new_beam(xpos, ypos, new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
+	Beam new_beam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
 
 	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환
 	{
-		if (scene.GetInfo(xpos, ypos, new_beam_dir) == 0)//처음 생성한다면 push_back
+		if (scene.GetInfo(prior_end, new_beam_dir) == 0)//처음 생성한다면 push_back
 		{
 			lightBeam.push_back(new_beam);
-			scene.SetInfo(xpos, ypos, lightBeam.size(), new_beam_dir);
+			scene.SetInfo(prior_end, lightBeam.size(), new_beam_dir);
 		}
 		else
-			lightBeam[scene.GetInfo(xpos, ypos, new_beam_dir) - 1] = new_beam;//아니라면 이미 존재하는 beam을 업데이트
+			lightBeam[scene.GetInfo(prior_end, new_beam_dir) - 1] = new_beam;//아니라면 이미 존재하는 beam을 업데이트
 
 		return (new_beam_dir << 4) | true;
 	}
@@ -392,12 +503,11 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
-	int xpos, ypos, beam_dir;
 	Pos prior_end = prior_beam->GetBeamEnd();
-	xpos = prior_end.GetX(), ypos = prior_end.GetY();
-	beam_dir = prior_beam->GetBeamDir();
 
-	int combiner_dir = scene.GetDir(xpos, ypos);
+	int beam_dir  = prior_beam->GetBeamDir();
+
+	int combiner_dir = scene.GetDir(prior_end);
 
 	int up = 0, left = 0, down = 0, right = 0;
 	Beam* beam_up = NULL, * beam_left = NULL, * beam_down = NULL, * beam_right = NULL;
@@ -406,96 +516,92 @@ bool Simulation::CreateCombinedBeam(int num) //새로 생성된 광선의 유무 반환
 	if (combiner_dir == (beam_dir + 2) % 4) //출력 장치로 전달되었다면 종료
 		return false;
 
-	scene.SetInfo(xpos, ypos, num, (beam_dir + 2) % 4);//beam_dir과 반대값 전달
+	scene.SetInfo(prior_end, num, (beam_dir + 2) % 4);//beam_dir과 반대값 전달
 
 	if (combiner_dir != UP)
 	{
-		up = scene.GetInfo(xpos, ypos, UP);
+		up = scene.GetInfo(prior_end, UP);
 		if (up != 0)
 		{
 			beam_up = &lightBeam[up - 1];
-			total_r = total_r || beam_up->GetR();
-			total_g = total_g || beam_up->GetG();
-			total_b = total_b || beam_up->GetB();
+			total_r |= beam_up->GetR();
+			total_g |= beam_up->GetG();
+			total_b |= beam_up->GetB();
 		}
 	}
 	if (combiner_dir != LEFT)
 	{
-		left = scene.GetInfo(xpos, ypos, LEFT);
+		left = scene.GetInfo(prior_end, LEFT);
 		if (left != 0)
 		{
 			beam_left = &lightBeam[left - 1];
-			total_r = total_r || beam_left->GetR();
-			total_g = total_g || beam_left->GetG();
-			total_b = total_b || beam_left->GetB();
+			total_r |= beam_left->GetR();
+			total_g |= beam_left->GetG();
+			total_b |= beam_left->GetB();
 		}
 	}
 	if (combiner_dir != DOWN)
 	{
-		down = scene.GetInfo(xpos, ypos, DOWN);
+		down = scene.GetInfo(prior_end, DOWN);
 		if (down != 0)
 		{
 			beam_down = &lightBeam[down - 1];
-			total_r = total_r || beam_down->GetR();
-			total_g = total_g || beam_down->GetG();
-			total_b = total_b || beam_down->GetB();
+			total_r |= beam_down->GetR();
+			total_g |= beam_down->GetG();
+			total_b |= beam_down->GetB();
 		}
 	}
 	if (combiner_dir != RIGHT)
 	{
-		right = scene.GetInfo(xpos, ypos, RIGHT);
+		right = scene.GetInfo(prior_end, RIGHT);
 		if (right != 0)
 		{
 			beam_right = &lightBeam[right - 1];
-			total_r = total_r || beam_right->GetR();
-			total_g = total_g || beam_right->GetG();
-			total_b = total_b || beam_right->GetB();
+			total_r |= beam_right->GetR();
+			total_g |= beam_right->GetG();
+			total_b |= beam_right->GetB();
 		}
 	}
-	Beam new_beam(xpos, ypos, combiner_dir, total_r, total_g, total_b);
+	Beam new_beam(prior_end.GetX(), prior_end.GetY(), combiner_dir, total_r, total_g, total_b);
 
-	if (scene.GetInfo(xpos, ypos, combiner_dir) == 0)
+	if (scene.GetInfo(prior_end, combiner_dir) == 0)
 	{
 		lightBeam.push_back(new_beam);
-		scene.SetInfo(xpos, ypos, lightBeam.size(), combiner_dir);
+		scene.SetInfo(prior_end, lightBeam.size(), combiner_dir);
 	}
 	else
-		lightBeam[scene.GetInfo(xpos, ypos, combiner_dir) - 1] = new_beam;
+		lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1] = new_beam;
 	return true;
 }
 bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B)
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
-	int xpos, ypos;
 	Pos prior_end = prior_beam->GetBeamEnd();
-	xpos = prior_end.GetX(), ypos = prior_end.GetY();
 
-	int beam_dir, beam_r, beam_g, beam_b;
-	beam_dir = prior_beam->GetBeamDir();
-	beam_r = prior_beam->GetR();
-	beam_g = prior_beam->GetG();
-	beam_b = prior_beam->GetB();
+	int beam_dir = prior_beam->GetBeamDir();
+	int beam_r = prior_beam->GetR();
+	int beam_g = prior_beam->GetG();
+	int beam_b = prior_beam->GetB();
 
 	Beam new_beam;
 
-	int separator_dir;
-	separator_dir = scene.GetDir(xpos, ypos);
+	int separator_dir = scene.GetDir(prior_end);
 
 	int new_beam_dir;
 	switch (color)
 	{
 	case RED:
 		new_beam_dir = (separator_dir + 1) % 4;
-		new_beam.SetBeam(xpos, ypos, new_beam_dir, beam_r, 0, 0);
+		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, beam_r, 0, 0);
 		break;
 	case GREEN:
 		new_beam_dir = separator_dir;
-		new_beam.SetBeam(xpos, ypos, new_beam_dir, 0, beam_g, 0);
+		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, beam_g, 0);
 		break;
 	case BLUE:
 		new_beam_dir = (separator_dir + 3) % 4;
-		new_beam.SetBeam(xpos, ypos, new_beam_dir, 0, 0, beam_b);
+		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, 0, beam_b);
 		break;
 	default:
 		printf("Error: this color is not vaild.");
@@ -503,13 +609,13 @@ bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 
 	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환
 	{
-		if (scene.GetInfo(xpos, ypos, new_beam_dir) == 0)//처음 생성한다면 push_back
+		if (scene.GetInfo(prior_end, new_beam_dir) == 0)//처음 생성한다면 push_back
 		{
 			lightBeam.push_back(new_beam);
-			scene.SetInfo(xpos, ypos, lightBeam.size(), new_beam_dir);
+			scene.SetInfo(prior_end, lightBeam.size(), new_beam_dir);
 		}
 		else
-			lightBeam[scene.GetInfo(xpos, ypos, new_beam_dir) - 1] = new_beam;//아니라면 이미 존재하는 beam을 업데이트
+			lightBeam[scene.GetInfo(prior_end, new_beam_dir) - 1] = new_beam;//아니라면 이미 존재하는 beam을 업데이트
 
 		return true;
 	}
@@ -517,9 +623,8 @@ bool Simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 }
 void Simulation::SimulateBeam(int num)
 {
-	Pos end;
-	end = lightBeam[num - 1].CheckBeamEnd();
-	switch (scene.GetType(end.GetX(), end.GetY()))
+	Pos end = lightBeam[num - 1].CheckBeamEnd();
+	switch (scene.GetType(end))
 	{
 	case type::WALL:
 		return;
@@ -527,12 +632,11 @@ void Simulation::SimulateBeam(int num)
 		return;
 	case type::MIRROR:
 	{
-		int temp;
-		temp = CreateMirroredBeam(num);
+		int temp = CreateMirroredBeam(num);
 		if (temp & 0x0F)
 		{
 			int new_beam_dir = (temp & 0xF0) >> 4;
-			num = scene.GetInfo(end.GetX(), end.GetY(), new_beam_dir);
+			num = scene.GetInfo(end, new_beam_dir);
 			SimulateBeam(num);
 		}
 		else return;
@@ -542,7 +646,7 @@ void Simulation::SimulateBeam(int num)
 	{
 		if (CreateCombinedBeam(num))
 		{
-			num = scene.GetInfo(end.GetX(), end.GetY(), scene.GetDir(end.GetX(), end.GetY()));
+			num = scene.GetInfo(end, scene.GetDir(end));
 			SimulateBeam(num);
 		}
 		else return;
@@ -550,23 +654,23 @@ void Simulation::SimulateBeam(int num)
 	}
 	case type::SEPARATOR:
 	{
-		if (lightBeam[num - 1].GetBeamDir() != scene.GetDir(end.GetX(), end.GetY()))//입력 방향이 올바르지 않다면
+		if (lightBeam[num - 1].GetBeamDir() != scene.GetDir(end))//입력 방향이 올바르지 않다면
 			return;
-		int _num;//덮어쓰기 방지
+		int new_num;
 		if (CreateSeparatedBeam(num, RED))
 		{
-			_num = scene.GetInfo(end.GetX(), end.GetY(), (scene.GetDir(end.GetX(), end.GetY()) + 1) % 4);
-			SimulateBeam(_num);
+			new_num = scene.GetInfo(end, (scene.GetDir(end) + 1) % 4);
+			SimulateBeam(new_num);
 		}
 		if (CreateSeparatedBeam(num, GREEN))
 		{
-			_num = scene.GetInfo(end.GetX(), end.GetY(), scene.GetDir(end.GetX(), end.GetY()));
-			SimulateBeam(_num);
+			new_num = scene.GetInfo(end, scene.GetDir(end));
+			SimulateBeam(new_num);
 		}
 		if (CreateSeparatedBeam(num, BLUE))
 		{
-			_num = scene.GetInfo(end.GetX(), end.GetY(), (scene.GetDir(end.GetX(), end.GetY()) + 3) % 4);
-			SimulateBeam(_num);
+			new_num = scene.GetInfo(end, (scene.GetDir(end) + 3) % 4);
+			SimulateBeam(new_num);
 		}
 		break;
 	}
@@ -627,23 +731,17 @@ void Render::RenderBeam()
 {
 	for (unsigned int i = 0; i < lightBeam.size(); i++)
 	{
-		int x, y;
-		int len;
-		int dir;
-		x = lightBeam[i].GetBeamSource().GetX();
-		y = lightBeam[i].GetBeamSource().GetY();
-		len = lightBeam[i].GetBeamLen();
-		dir = lightBeam[i].GetBeamDir();
+		int x = lightBeam[i].GetBeamSource().GetX();
+		int y = lightBeam[i].GetBeamSource().GetY();
+		int len = lightBeam[i].GetBeamLen();
+		int dir = lightBeam[i].GetBeamDir();
 		int r = 255 * lightBeam[i].GetR();
 		int g = 255 * lightBeam[i].GetG();
 		int b = 255 * lightBeam[i].GetB();
 
-		Pos end;
-		end = lightBeam[i].GetBeamEnd();
-		int end_block_type;
-		end_block_type = scene.GetType(end.GetX(), end.GetY());
-		int block_dir;
-		block_dir = scene.GetDir(end.GetX(), end.GetY());
+		Pos end = lightBeam[i].GetBeamEnd();
+		int end_block_type = scene.GetType(end);
+		int block_dir = scene.GetDir(end);
 
 		bool render_start = true;
 		bool render_end = true;

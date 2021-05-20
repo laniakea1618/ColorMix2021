@@ -97,7 +97,7 @@ public:
 	int GetB() const;
 	void ShowBeamInfo() const;
 };
-vector <Beam> lightBeam; //번호는 1번부터 시작. i번 beam은 인덱스 i-1에 위치함.
+std::vector <Beam> lightBeam; //번호는 1번부터 시작. i번 beam은 인덱스 i-1에 위치함.
 
 int Pos::GetX() const
 {

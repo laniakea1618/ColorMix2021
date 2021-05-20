@@ -1,6 +1,4 @@
 /*무한루프 문제 해결할 것*/
-/*방향 검사하는 네임스페이스 추가할 것*/
-/*memset*/
 
 #pragma once
 
@@ -62,7 +60,7 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 		else if (beam_dir == dir::RIGHT) new_beam_dir = dir::UP;
 		else return false;
 		break;
-	case dir::LEFT_DOWN:
+	case dir::DOWN_LEFT:
 		if (beam_dir == dir::RIGHT) new_beam_dir = dir::DOWN;
 		else if (beam_dir == dir::UP) new_beam_dir = dir::LEFT;
 		else return false;
@@ -72,7 +70,7 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 		else if (beam_dir == dir::LEFT) new_beam_dir = dir::DOWN;
 		else return false;
 		break;
-	case dir::RIGHT_UP:
+	case dir::UP_RIGHT:
 		if (beam_dir == dir::LEFT) new_beam_dir = dir::UP;
 		else if (beam_dir == dir::DOWN) new_beam_dir = dir::RIGHT;
 		else return false;
@@ -337,7 +335,7 @@ void render::RenderBeam()
 		case type::WALL:
 			break;
 		case type::MIRROR:
-			if ((block_dir == dir) || (dir::CounterClockwiseShift(block_dir) == dir)) //거울 뒷면에 맞았다면
+			if ((block_dir == dir) || (dir::ClockwiseShift(block_dir) == dir)) //거울 뒷면에 맞았다면
 				render_end = false;
 			break;
 		case type::SHOOTER:
@@ -429,7 +427,7 @@ void render::RenderBlock()
 					PNG_Image[image::MIRROR_COLOR_0].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir::LEFT_DOWN:
+				case dir::DOWN_LEFT:
 					PNG_Image[image::MIRROR_BASE_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_1].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
@@ -439,7 +437,7 @@ void render::RenderBlock()
 					PNG_Image[image::MIRROR_COLOR_2].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir::RIGHT_UP:
+				case dir::UP_RIGHT:
 					PNG_Image[image::MIRROR_BASE_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_3].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);

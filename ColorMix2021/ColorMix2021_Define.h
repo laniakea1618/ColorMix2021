@@ -9,8 +9,6 @@
 #include <cmath>
 #include <memory.h>
 
-using namespace std;
-
 const int SCREEN_WIDTH = 1440;
 const int SCREEN_HEIGHT = 720;
 
@@ -20,17 +18,17 @@ const int X_OFFSET = (SCREEN_WIDTH - 48 * MAP_WIDTH) / 2;
 const int Y_OFFSET = (SCREEN_HEIGHT - 48 * MAP_HEIGHT) / 2;
 
 /*texture color code #8000ff is for color keying.*/
-/*color code variants: 0x80, 0xb0, 0xff, 0x58*/
+/*color code variants: 0x80, 0xb0, 0DOWN_LEFTxff, 0x58*/
 
 namespace dir
 {
 	enum dir_straight
 	{
-		UP, LEFT, DOWN, RIGHT
+		UP, RIGHT, DOWN, LEFT
 	};
 	enum dir_diagonal
 	{
-		UP_LEFT, LEFT_DOWN, DOWN_RIGHT, RIGHT_UP
+		UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT
 	};
 
 	int Opposite(int dir)
@@ -39,11 +37,11 @@ namespace dir
 	}
 	int ClockwiseShift(int dir)
 	{
-		return (dir + 3) % 4;
+		return (dir + 1) % 4;
 	}
 	int CounterClockwiseShift(int dir)
 	{
-		return (dir + 1) % 4;
+		return (dir + 3) % 4;
 	}
 }
 

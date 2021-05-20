@@ -1,5 +1,3 @@
-/*무한루프 문제 해결할 것*/
-
 #pragma once
 
 #include "ColorMix2021_SDLSetup.h"
@@ -10,7 +8,7 @@ namespace simulation
 	void CreateShooterBeam(Pos pos);
 	void CreateShooterBeam(int x, int y);
 	unsigned char CreateMirroredBeam(int num);
-	void CreateCombinedBeam(int num);
+	bool CreateCombinedBeam(int num);
 	bool CreateSeparatedBeam(int num, int color);
 	void SimulateBeam(int num);
 	void SimulateAll();
@@ -76,7 +74,7 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 		else return false;
 		break;
 	default:
-		printf("Simualtion::CreateMirroredBeam ERROR, invalid direction\n");
+		printf("Simualtion::CreateMirroredBeam Error: invalid direction\n");
 		break;
 	}
 	Beam new_beam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
@@ -94,14 +92,13 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	}
 	else return false;
 }
-void simulation::CreateCombinedBeam(int num)
+bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 {
 	Beam* prior_beam = &lightBeam[num - 1]; //인덱스이므로 1을 빼준다.
 
 	Pos prior_end = prior_beam->GetBeamEnd();
 
 	int beam_dir = prior_beam->GetBeamDir();
-
 	int combiner_dir = scene.GetDir(prior_end);
 
 	int up = 0, left = 0, down = 0, right = 0;
@@ -160,9 +157,21 @@ void simulation::CreateCombinedBeam(int num)
 	{
 		lightBeam.push_back(new_beam);
 		scene.SetInfo(prior_end, lightBeam.size(), combiner_dir);
+		return true;
 	}
 	else
-		lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1] = new_beam;
+	{
+		if (lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1].GetBeamColor()
+			== total_r * 4 + total_g * 2 + total_b) // 색 변화 없다면
+		{
+			return false;
+		}
+		else
+		{
+			lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1] = new_beam;
+			return true;
+		}
+	}
 }
 bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B)
 {
@@ -195,7 +204,7 @@ bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, 0, beam_b);
 		break;
 	default:
-		printf("Error: this color is not vaild.");
+		printf("simulation::CreateSeparatedBeam Error: invaild color\n");
 		new_beam_dir = -1;
 	}
 
@@ -234,15 +243,18 @@ void simulation::SimulateBeam(int num)
 		else return;
 		break;
 	}
-	case type::COMBINER://can trigger infinte loop
+	case type::COMBINER:
 	{
 		if (scene.GetDir(end) == dir::Opposite(lightBeam[num - 1].GetBeamDir()))//if input direction is invalid
 			return;
 		else
 		{
-			CreateCombinedBeam(num);
-			num = scene.GetInfo(end, scene.GetDir(end));
-			SimulateBeam(num);
+			if (CreateCombinedBeam(num)) //색 변화 있다면 다시 탐색
+			{
+				num = scene.GetInfo(end, scene.GetDir(end));
+				SimulateBeam(num);
+			}
+			else return; //없다면 return
 		}
 		break;
 	}
@@ -280,7 +292,7 @@ void simulation::SimulateBeam(int num)
 		break;
 	}*/
 	default:
-		printf("Error: Light behaviour against this type of block has not been defined.\n");
+		printf("simulation::SimulateBeam Error: Light behaviour against this type of block has not been defined.\n");
 		return;
 	}
 }
@@ -394,7 +406,7 @@ void render::RenderBeam()
 			}
 			break;
 		default:
-			printf("Rendering Beams ERROR, invalid direction\n");
+			printf("render::RenderBeam Error: invalid direction\n");
 			break;
 		}
 	}
@@ -443,7 +455,7 @@ void render::RenderBlock()
 					PNG_Image[image::MIRROR_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
-					printf("Rendering Block(Mirror) ERROR, invalid direction\n");
+					printf("render::RenderBlock(Mirror) Error: invalid direction\n");
 					break;
 				}
 				break;
@@ -471,7 +483,7 @@ void render::RenderBlock()
 					PNG_Image[image::SHOOTER_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
-					printf("Rendering Block(Shooter) ERROR, invalid direction\n");
+					printf("render::RenderBlock(Shooter) Error: invalid direction\n");
 					break;
 				}
 				break;
@@ -491,7 +503,7 @@ void render::RenderBlock()
 					PNG_Image[image::COMBINER_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
-					printf("Rendering Block(Combiner) ERROR, invalid direction\n");
+					printf("render::RenderBlock(Combiner) Error: invalid direction\n");
 					break;
 				}
 				break;
@@ -511,7 +523,7 @@ void render::RenderBlock()
 					PNG_Image[image::SEPARATOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
-					printf("Rendering Block(Combiner) ERROR, invalid direction\n");
+					printf("render::RenderBlock(Combiner) Error: invalid direction\n");
 					break;
 				}
 				break;
@@ -544,7 +556,7 @@ void render::RenderBlock()
 					}
 					break;*/
 			default:
-				printf("Rendering Block ERROR, invalid block type\n");
+				printf("render::RenderBlock Error: invalid block type\n");
 				break;
 			}
 		}

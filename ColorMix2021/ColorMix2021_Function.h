@@ -51,32 +51,16 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	int mirror_dir = scene.GetDir(prior_end);
 
 	int new_beam_dir;
-	switch (mirror_dir)
+	if (beam_dir == dir::Opposite(mirror_dir))
 	{
-	case dir::UP_LEFT:
-		if (beam_dir == dir::DOWN) new_beam_dir = dir::LEFT;
-		else if (beam_dir == dir::RIGHT) new_beam_dir = dir::UP;
-		else return false;
-		break;
-	case dir::DOWN_LEFT:
-		if (beam_dir == dir::RIGHT) new_beam_dir = dir::DOWN;
-		else if (beam_dir == dir::UP) new_beam_dir = dir::LEFT;
-		else return false;
-		break;
-	case dir::DOWN_RIGHT:
-		if (beam_dir == dir::UP) new_beam_dir = dir::RIGHT;
-		else if (beam_dir == dir::LEFT) new_beam_dir = dir::DOWN;
-		else return false;
-		break;
-	case dir::UP_RIGHT:
-		if (beam_dir == dir::LEFT) new_beam_dir = dir::UP;
-		else if (beam_dir == dir::DOWN) new_beam_dir = dir::RIGHT;
-		else return false;
-		break;
-	default:
-		printf("Simualtion::CreateMirroredBeam Error: invalid direction\n");
-		break;
+		new_beam_dir = dir::CounterClockwiseShift(beam_dir);
 	}
+	else if (beam_dir == dir::CounterClockwiseShift(mirror_dir))
+	{
+		new_beam_dir = dir::ClockwiseShift(beam_dir);
+	}
+	else return false;
+
 	Beam new_beam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
 
 	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환

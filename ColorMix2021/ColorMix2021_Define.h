@@ -22,20 +22,31 @@ const int Y_OFFSET = (SCREEN_HEIGHT - 48 * MAP_HEIGHT) / 2;
 /*texture color code #8000ff is for color keying.*/
 /*color code variants: 0x80, 0xb0, 0xff, 0x58*/
 
-namespace dir_straight
+namespace dir
 {
 	enum dir_straight
 	{
 		UP, LEFT, DOWN, RIGHT
 	};
-}
-namespace dir_diagonal
-{
 	enum dir_diagonal
 	{
 		UP_LEFT, LEFT_DOWN, DOWN_RIGHT, RIGHT_UP
 	};
+
+	int Opposite(int dir)
+	{
+		return (dir + 2) % 4;
+	}
+	int ClockwiseShift(int dir)
+	{
+		return (dir + 3) % 4;
+	}
+	int CounterClockwiseShift(int dir)
+	{
+		return (dir + 1) % 4;
+	}
 }
+
 namespace type
 {
 	enum block_type

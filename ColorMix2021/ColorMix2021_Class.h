@@ -255,19 +255,19 @@ void Scene::SetInfo(Pos pos, int num, int dir)
 {
 	switch (dir)
 	{
-	case dir_straight::UP:
+	case dir::UP:
 		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0x00FFFFFF;//해당 자리 0으로 지우기
 		info_[pos.GetY()][pos.GetX()] += (num << 24);//해당 자리에 num정보 대입
 		break;
-	case dir_straight::LEFT:
+	case dir::LEFT:
 		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0xFF00FFFF;
 		info_[pos.GetY()][pos.GetX()] += (num << 16);
 		break;
-	case dir_straight::DOWN:
+	case dir::DOWN:
 		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0xFFFF00FF;
 		info_[pos.GetY()][pos.GetX()] += (num << 8);
 		break;
-	case dir_straight::RIGHT:
+	case dir::RIGHT:
 		info_[pos.GetY()][pos.GetX()] = info_[pos.GetY()][pos.GetX()] & 0xFFFFFF00;
 		info_[pos.GetY()][pos.GetX()] += num;
 		break;
@@ -280,19 +280,19 @@ void Scene::SetInfo(int x, int y, int num, int dir)
 {
 	switch (dir)
 	{
-	case dir_straight::UP:
+	case dir::UP:
 		info_[y][x] = info_[y][x] & 0x00FFFFFF;//해당 자리 0으로 지우기
 		info_[y][x] += (num << 24);//해당 자리에 num정보 대입
 		break;
-	case dir_straight::LEFT:
+	case dir::LEFT:
 		info_[y][x] = info_[y][x] & 0xFF00FFFF;
 		info_[y][x] += (num << 16);
 		break;
-	case dir_straight::DOWN:
+	case dir::DOWN:
 		info_[y][x] = info_[y][x] & 0xFFFF00FF;
 		info_[y][x] += (num << 8);
 		break;
-	case dir_straight::RIGHT:
+	case dir::RIGHT:
 		info_[y][x] = info_[y][x] & 0xFFFFFF00;
 		info_[y][x] += num;
 		break;
@@ -309,13 +309,13 @@ int Scene::GetInfo(Pos pos, int dir) const
 {
 	switch (dir)
 	{
-	case dir_straight::UP:
+	case dir::UP:
 		return (info_[pos.GetY()][pos.GetX()] & 0xFF000000) >> 24;
-	case dir_straight::LEFT:
+	case dir::LEFT:
 		return (info_[pos.GetY()][pos.GetX()] & 0x00FF0000) >> 16;
-	case dir_straight::DOWN:
+	case dir::DOWN:
 		return (info_[pos.GetY()][pos.GetX()] & 0x0000FF00) >> 8;
-	case dir_straight::RIGHT:
+	case dir::RIGHT:
 		return (info_[pos.GetY()][pos.GetX()] & 0x000000FF);
 	default:
 		printf("Scene::GetInfo ERROR, invalid direction\n");
@@ -326,13 +326,13 @@ int Scene::GetInfo(int x, int y, int dir) const
 {
 	switch (dir)
 	{
-	case dir_straight::UP:
+	case dir::UP:
 		return (info_[y][x] & 0xFF000000) >> 24;
-	case dir_straight::LEFT:
+	case dir::LEFT:
 		return (info_[y][x] & 0x00FF0000) >> 16;
-	case dir_straight::DOWN:
+	case dir::DOWN:
 		return (info_[y][x] & 0x0000FF00) >> 8;
-	case dir_straight::RIGHT:
+	case dir::RIGHT:
 		return (info_[y][x] & 0x000000FF);
 	default:
 		printf("Scene::GetInfo ERROR, invalid direction\n");
@@ -363,16 +363,16 @@ Pos Beam::CheckBeamEnd()
 	int y = source_.GetY();
 	switch (dir_)
 	{
-	case dir_straight::UP:
+	case dir::UP:
 		do { y--, len_++; } while (scene.GetType(x, y) == type::EMPTY);
 		break;
-	case dir_straight::LEFT:
+	case dir::LEFT:
 		do { x--, len_++; } while (scene.GetType(x, y) == type::EMPTY);
 		break;
-	case dir_straight::DOWN:
+	case dir::DOWN:
 		do { y++, len_++; } while (scene.GetType(x, y) == type::EMPTY);
 		break;
-	case dir_straight::RIGHT:
+	case dir::RIGHT:
 		do { x++, len_++; } while (scene.GetType(x, y) == type::EMPTY);
 		break;
 	default:

@@ -1,3 +1,7 @@
+/*무한루프 문제 해결할 것*/
+/*방향 검사하는 네임스페이스 추가할 것*/
+/*memset*/
+
 #pragma once
 
 #include "ColorMix2021_SDLSetup.h"
@@ -53,24 +57,24 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	int new_beam_dir;
 	switch (mirror_dir)
 	{
-	case dir_diagonal::UP_LEFT:
-		if (beam_dir == dir_straight::DOWN) new_beam_dir = dir_straight::LEFT;
-		else if (beam_dir == dir_straight::RIGHT) new_beam_dir = dir_straight::UP;
+	case dir::UP_LEFT:
+		if (beam_dir == dir::DOWN) new_beam_dir = dir::LEFT;
+		else if (beam_dir == dir::RIGHT) new_beam_dir = dir::UP;
 		else return false;
 		break;
-	case dir_diagonal::LEFT_DOWN:
-		if (beam_dir == dir_straight::RIGHT) new_beam_dir = dir_straight::DOWN;
-		else if (beam_dir == dir_straight::UP) new_beam_dir = dir_straight::LEFT;
+	case dir::LEFT_DOWN:
+		if (beam_dir == dir::RIGHT) new_beam_dir = dir::DOWN;
+		else if (beam_dir == dir::UP) new_beam_dir = dir::LEFT;
 		else return false;
 		break;
-	case dir_diagonal::DOWN_RIGHT:
-		if (beam_dir == dir_straight::UP) new_beam_dir = dir_straight::RIGHT;
-		else if (beam_dir == dir_straight::LEFT) new_beam_dir = dir_straight::DOWN;
+	case dir::DOWN_RIGHT:
+		if (beam_dir == dir::UP) new_beam_dir = dir::RIGHT;
+		else if (beam_dir == dir::LEFT) new_beam_dir = dir::DOWN;
 		else return false;
 		break;
-	case dir_diagonal::RIGHT_UP:
-		if (beam_dir == dir_straight::LEFT) new_beam_dir = dir_straight::UP;
-		else if (beam_dir == dir_straight::DOWN) new_beam_dir = dir_straight::RIGHT;
+	case dir::RIGHT_UP:
+		if (beam_dir == dir::LEFT) new_beam_dir = dir::UP;
+		else if (beam_dir == dir::DOWN) new_beam_dir = dir::RIGHT;
 		else return false;
 		break;
 	default:
@@ -106,11 +110,11 @@ void simulation::CreateCombinedBeam(int num)
 	Beam* beam_up = NULL, * beam_left = NULL, * beam_down = NULL, * beam_right = NULL;
 	int total_r = 0, total_g = 0, total_b = 0;
 
-	scene.SetInfo(prior_end, num, (beam_dir + 2) % 4);//beam_dir과 반대값 전달
+	scene.SetInfo(prior_end, num, dir::Opposite(beam_dir));//beam_dir과 반대값 전달
 
-	if (combiner_dir != dir_straight::UP)
+	if (combiner_dir != dir::UP)
 	{
-		up = scene.GetInfo(prior_end, dir_straight::UP);
+		up = scene.GetInfo(prior_end, dir::UP);
 		if (up != 0)
 		{
 			beam_up = &lightBeam[up - 1];
@@ -119,9 +123,9 @@ void simulation::CreateCombinedBeam(int num)
 			total_b |= beam_up->GetB();
 		}
 	}
-	if (combiner_dir != dir_straight::LEFT)
+	if (combiner_dir != dir::LEFT)
 	{
-		left = scene.GetInfo(prior_end, dir_straight::LEFT);
+		left = scene.GetInfo(prior_end, dir::LEFT);
 		if (left != 0)
 		{
 			beam_left = &lightBeam[left - 1];
@@ -130,9 +134,9 @@ void simulation::CreateCombinedBeam(int num)
 			total_b |= beam_left->GetB();
 		}
 	}
-	if (combiner_dir != dir_straight::DOWN)
+	if (combiner_dir != dir::DOWN)
 	{
-		down = scene.GetInfo(prior_end, dir_straight::DOWN);
+		down = scene.GetInfo(prior_end, dir::DOWN);
 		if (down != 0)
 		{
 			beam_down = &lightBeam[down - 1];
@@ -141,9 +145,9 @@ void simulation::CreateCombinedBeam(int num)
 			total_b |= beam_down->GetB();
 		}
 	}
-	if (combiner_dir != dir_straight::RIGHT)
+	if (combiner_dir != dir::RIGHT)
 	{
-		right = scene.GetInfo(prior_end, dir_straight::RIGHT);
+		right = scene.GetInfo(prior_end, dir::RIGHT);
 		if (right != 0)
 		{
 			beam_right = &lightBeam[right - 1];
@@ -181,7 +185,7 @@ bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 	switch (color)
 	{
 	case RED:
-		new_beam_dir = (separator_dir + 1) % 4;
+		new_beam_dir = dir::CounterClockwiseShift(separator_dir);
 		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, beam_r, 0, 0);
 		break;
 	case GREEN:
@@ -189,7 +193,7 @@ bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, beam_g, 0);
 		break;
 	case BLUE:
-		new_beam_dir = (separator_dir + 3) % 4;
+		new_beam_dir = dir::ClockwiseShift(separator_dir);
 		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, 0, beam_b);
 		break;
 	default:
@@ -234,7 +238,7 @@ void simulation::SimulateBeam(int num)
 	}
 	case type::COMBINER://can trigger infinte loop
 	{
-		if (scene.GetDir(end) == (lightBeam[num - 1].GetBeamDir() + 2) % 4)
+		if (scene.GetDir(end) == dir::Opposite(lightBeam[num - 1].GetBeamDir()))//if input direction is invalid
 			return;
 		else
 		{
@@ -246,12 +250,12 @@ void simulation::SimulateBeam(int num)
 	}
 	case type::SEPARATOR:
 	{
-		if (lightBeam[num - 1].GetBeamDir() != scene.GetDir(end))//if input direction is wrong
+		if (lightBeam[num - 1].GetBeamDir() != scene.GetDir(end))//if input direction is invalid
 			return;
 		int new_num;
 		if (CreateSeparatedBeam(num, RED))
 		{
-			new_num = scene.GetInfo(end, (scene.GetDir(end) + 1) % 4);
+			new_num = scene.GetInfo(end, dir::CounterClockwiseShift(scene.GetDir(end)));
 			SimulateBeam(new_num);
 		}
 		if (CreateSeparatedBeam(num, GREEN))
@@ -261,7 +265,7 @@ void simulation::SimulateBeam(int num)
 		}
 		if (CreateSeparatedBeam(num, BLUE))
 		{
-			new_num = scene.GetInfo(end, (scene.GetDir(end) + 3) % 4);
+			new_num = scene.GetInfo(end, dir::ClockwiseShift(scene.GetDir(end)));
 			SimulateBeam(new_num);
 		}
 		break;
@@ -333,7 +337,7 @@ void render::RenderBeam()
 		case type::WALL:
 			break;
 		case type::MIRROR:
-			if ((block_dir == dir) || ((block_dir + 1) % 4 == dir)) //거울 뒷면에 맞았다면
+			if ((block_dir == dir) || (dir::CounterClockwiseShift(block_dir) == dir)) //거울 뒷면에 맞았다면
 				render_end = false;
 			break;
 		case type::SHOOTER:
@@ -347,7 +351,7 @@ void render::RenderBeam()
 
 		switch (dir)
 		{
-		case dir_straight::UP:
+		case dir::UP:
 			if (!render_start)
 				y--;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -358,7 +362,7 @@ void render::RenderBeam()
 				y--;
 			}
 			break;
-		case dir_straight::LEFT:
+		case dir::LEFT:
 			if (!render_start)
 				x--;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -369,7 +373,7 @@ void render::RenderBeam()
 				x--;
 			}
 			break;
-		case dir_straight::DOWN:
+		case dir::DOWN:
 			if (!render_start)
 				y++;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -380,7 +384,7 @@ void render::RenderBeam()
 				y++;
 			}
 			break;
-		case dir_straight::RIGHT:
+		case dir::RIGHT:
 			if (!render_start)
 				x++;
 			for (int j = 1; j <= len + render_start + render_end; j++)
@@ -420,22 +424,22 @@ void render::RenderBlock()
 			case type::MIRROR:
 				switch (scene.GetDir(i, j))
 				{
-				case dir_diagonal::UP_LEFT:
+				case dir::UP_LEFT:
 					PNG_Image[image::MIRROR_BASE_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_0].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_diagonal::LEFT_DOWN:
+				case dir::LEFT_DOWN:
 					PNG_Image[image::MIRROR_BASE_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_1].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_diagonal::DOWN_RIGHT:
+				case dir::DOWN_RIGHT:
 					PNG_Image[image::MIRROR_BASE_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_2].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_diagonal::RIGHT_UP:
+				case dir::RIGHT_UP:
 					PNG_Image[image::MIRROR_BASE_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::MIRROR_COLOR_3].setColor(r, g, b);
 					PNG_Image[image::MIRROR_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
@@ -448,22 +452,22 @@ void render::RenderBlock()
 			case type::SHOOTER:
 				switch (scene.GetDir(i, j))
 				{
-				case dir_straight::UP:
+				case dir::UP:
 					PNG_Image[image::SHOOTER_BASE_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_0].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::LEFT:
+				case dir::LEFT:
 					PNG_Image[image::SHOOTER_BASE_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_1].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::DOWN:
+				case dir::DOWN:
 					PNG_Image[image::SHOOTER_BASE_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_2].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::RIGHT:
+				case dir::RIGHT:
 					PNG_Image[image::SHOOTER_BASE_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					PNG_Image[image::SHOOTER_COLOR_3].setColor(r, g, b);
 					PNG_Image[image::SHOOTER_COLOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
@@ -476,16 +480,16 @@ void render::RenderBlock()
 			case type::COMBINER:
 				switch (scene.GetDir(i, j))
 				{
-				case dir_straight::UP:
+				case dir::UP:
 					PNG_Image[image::COMBINER_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::LEFT:
+				case dir::LEFT:
 					PNG_Image[image::COMBINER_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::DOWN:
+				case dir::DOWN:
 					PNG_Image[image::COMBINER_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::RIGHT:
+				case dir::RIGHT:
 					PNG_Image[image::COMBINER_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:
@@ -496,16 +500,16 @@ void render::RenderBlock()
 			case type::SEPARATOR:
 				switch (scene.GetDir(i, j))
 				{
-				case dir_straight::UP:
+				case dir::UP:
 					PNG_Image[image::SEPARATOR_0].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::LEFT:
+				case dir::LEFT:
 					PNG_Image[image::SEPARATOR_1].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::DOWN:
+				case dir::DOWN:
 					PNG_Image[image::SEPARATOR_2].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
-				case dir_straight::RIGHT:
+				case dir::RIGHT:
 					PNG_Image[image::SEPARATOR_3].render(X_OFFSET + i * 48, Y_OFFSET + j * 48);
 					break;
 				default:

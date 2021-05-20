@@ -16,7 +16,7 @@ namespace simulation
 
 namespace render
 {
-	const Uint8 alpha_value = 160;
+	const Uint8 alpha_value = 175;
 
 	void RenderBackground();
 	void RenderBeam();
@@ -26,12 +26,22 @@ namespace render
 
 void simulation::CreateShooterBeam(Pos pos)
 {
-	Beam new_beam(pos.GetX(), pos.GetY(), scene.GetDir(pos), scene.GetR(pos), scene.GetG(pos), scene.GetB(pos));
+	int r = scene.GetR(pos);
+	int g = scene.GetG(pos);
+	int b = scene.GetB(pos);
+	int total = r + g + b;
+	Beam new_beam(pos.GetX(), pos.GetY(), scene.GetDir(pos),
+		(double)r / total, (double)g / total, (double)b / total);
 	lightBeam.push_back(new_beam);
 }
 void simulation::CreateShooterBeam(int x, int y)
 {
-	Beam new_beam(x, y, scene.GetDir(x, y), scene.GetR(x, y), scene.GetG(x, y), scene.GetB(x, y));
+	int r = scene.GetR(x, y);
+	int g = scene.GetG(x, y);
+	int b = scene.GetB(x, y);
+	int total = r + g + b;
+	Beam new_beam(x, y, scene.GetDir(x, y),
+		(double)r / total, (double)g / total, (double)b / total);
 	lightBeam.push_back(new_beam);
 }
 unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된 광선의 방향, 새로 생성된 광선의 유무 반환
@@ -41,9 +51,9 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	Pos prior_end = prior_beam->GetBeamEnd();
 
 	int beam_dir = prior_beam->GetBeamDir();
-	int beam_r = prior_beam->GetR();
-	int beam_g = prior_beam->GetG();
-	int beam_b = prior_beam->GetB();
+	double beam_r = prior_beam->GetR();
+	double beam_g = prior_beam->GetG();
+	double beam_b = prior_beam->GetB();
 
 	int mirror_r = scene.GetR(prior_end);
 	int mirror_g = scene.GetG(prior_end);
@@ -61,9 +71,10 @@ unsigned char simulation::CreateMirroredBeam(int num) //4비트씩 각각 새로 생성된
 	}
 	else return false;
 
-	Beam new_beam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, mirror_r && beam_r, mirror_g && beam_g, mirror_b && beam_b);
+	Beam new_beam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 
+		mirror_r * beam_r, mirror_g * beam_g, mirror_b * beam_b);
 
-	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환
+	if (!IsSame(new_beam.GetR(), 0) || !IsSame(new_beam.GetG(), 0) || !IsSame(new_beam.GetB(), 0)) // 색이 검은색이 아니라면 반환
 	{
 		if (scene.GetInfo(prior_end, new_beam_dir) == 0)//처음 생성한다면 push_back
 		{
@@ -87,19 +98,21 @@ bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 
 	int up = 0, left = 0, down = 0, right = 0;
 	Beam* beam_up = NULL, * beam_left = NULL, * beam_down = NULL, * beam_right = NULL;
-	int total_r = 0, total_g = 0, total_b = 0;
+	double total_r = 0, total_g = 0, total_b = 0;
 
 	scene.SetInfo(prior_end, num, dir::Opposite(beam_dir));//beam_dir과 반대값 전달
 
+	int input_cnt = 0;
 	if (combiner_dir != dir::UP)
 	{
 		up = scene.GetInfo(prior_end, dir::UP);
 		if (up != 0)
 		{
 			beam_up = &lightBeam[up - 1];
-			total_r |= beam_up->GetR();
-			total_g |= beam_up->GetG();
-			total_b |= beam_up->GetB();
+			total_r += beam_up->GetR();
+			total_g += beam_up->GetG();
+			total_b += beam_up->GetB();
+			input_cnt++;
 		}
 	}
 	if (combiner_dir != dir::LEFT)
@@ -108,9 +121,10 @@ bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 		if (left != 0)
 		{
 			beam_left = &lightBeam[left - 1];
-			total_r |= beam_left->GetR();
-			total_g |= beam_left->GetG();
-			total_b |= beam_left->GetB();
+			total_r += beam_left->GetR();
+			total_g += beam_left->GetG();
+			total_b += beam_left->GetB();
+			input_cnt++;
 		}
 	}
 	if (combiner_dir != dir::DOWN)
@@ -119,9 +133,10 @@ bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 		if (down != 0)
 		{
 			beam_down = &lightBeam[down - 1];
-			total_r |= beam_down->GetR();
-			total_g |= beam_down->GetG();
-			total_b |= beam_down->GetB();
+			total_r += beam_down->GetR();
+			total_g += beam_down->GetG();
+			total_b += beam_down->GetB();
+			input_cnt++;
 		}
 	}
 	if (combiner_dir != dir::RIGHT)
@@ -130,12 +145,17 @@ bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 		if (right != 0)
 		{
 			beam_right = &lightBeam[right - 1];
-			total_r |= beam_right->GetR();
-			total_g |= beam_right->GetG();
-			total_b |= beam_right->GetB();
+			total_r += beam_right->GetR();
+			total_g += beam_right->GetG();
+			total_b += beam_right->GetB();
+			input_cnt++;
 		}
 	}
-	Beam new_beam(prior_end.GetX(), prior_end.GetY(), combiner_dir, total_r, total_g, total_b);
+	total_r /= input_cnt;
+	total_g /= input_cnt;
+	total_b /= input_cnt;
+	Beam new_beam(prior_end.GetX(), prior_end.GetY(), combiner_dir,
+		total_r, total_g, total_b);
 
 	if (scene.GetInfo(prior_end, combiner_dir) == 0)
 	{
@@ -145,8 +165,9 @@ bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 	}
 	else
 	{
-		if (lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1].GetBeamColor()
-			== total_r * 4 + total_g * 2 + total_b) // 색 변화 없다면
+		if (IsSame(lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1].GetR(), total_r)
+			&& IsSame(lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1].GetG(), total_g)
+			&& IsSame(lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1].GetB(), total_b)) // 색 변화 없다면
 		{
 			return false;
 		}
@@ -155,6 +176,7 @@ bool simulation::CreateCombinedBeam(int num) //색 변화 유무 반환
 			lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1] = new_beam;
 			return true;
 		}
+		//lightBeam[scene.GetInfo(prior_end, combiner_dir) - 1] = new_beam;
 	}
 }
 bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B)
@@ -164,9 +186,9 @@ bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 	Pos prior_end = prior_beam->GetBeamEnd();
 
 	int beam_dir = prior_beam->GetBeamDir();
-	int beam_r = prior_beam->GetR();
-	int beam_g = prior_beam->GetG();
-	int beam_b = prior_beam->GetB();
+	double beam_r = prior_beam->GetR();
+	double beam_g = prior_beam->GetG();
+	double beam_b = prior_beam->GetB();
 
 	Beam new_beam;
 
@@ -177,22 +199,22 @@ bool simulation::CreateSeparatedBeam(int num, int color)//생성할 색 입력(R, G, B
 	{
 	case RED:
 		new_beam_dir = dir::CounterClockwiseShift(separator_dir);
-		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, beam_r, 0, 0);
+		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, !IsSame(beam_r, 0), 0, 0);
 		break;
 	case GREEN:
 		new_beam_dir = separator_dir;
-		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, beam_g, 0);
+		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, !IsSame(beam_g, 0), 0);
 		break;
 	case BLUE:
 		new_beam_dir = dir::ClockwiseShift(separator_dir);
-		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, 0, beam_b);
+		new_beam.SetBeam(prior_end.GetX(), prior_end.GetY(), new_beam_dir, 0, 0, !IsSame(beam_b, 0));
 		break;
 	default:
 		printf("simulation::CreateSeparatedBeam Error: invaild color\n");
 		new_beam_dir = -1;
 	}
 
-	if (new_beam.GetR() || new_beam.GetG() || new_beam.GetB())//색이 검은색이 아니라면 반환
+	if (!IsSame(new_beam.GetR(), 0) || !IsSame(new_beam.GetG(), 0) || !IsSame(new_beam.GetB(), 0))//색이 검은색이 아니라면 반환
 	{
 		if (scene.GetInfo(prior_end, new_beam_dir) == 0)//처음 생성한다면 push_back
 		{
@@ -238,7 +260,7 @@ void simulation::SimulateBeam(int num)
 				num = scene.GetInfo(end, scene.GetDir(end));
 				SimulateBeam(num);
 			}
-			else return; //없다면 return
+			else return;
 		}
 		break;
 	}
@@ -315,9 +337,11 @@ void render::RenderBeam()
 		int y = lightBeam[i].GetBeamSource().GetY();
 		int len = lightBeam[i].GetBeamLen();
 		int dir = lightBeam[i].GetBeamDir();
-		int r = 255 * lightBeam[i].GetR();
-		int g = 255 * lightBeam[i].GetG();
-		int b = 255 * lightBeam[i].GetB();
+
+		double max_among_rgb = std::max(std::max(lightBeam[i].GetR(), lightBeam[i].GetG()), lightBeam[i].GetB());
+		int r = (int)(255 * lightBeam[i].GetR() / max_among_rgb);
+		int g = (int)(255 * lightBeam[i].GetG() / max_among_rgb);
+		int b = (int)(255 * lightBeam[i].GetB() / max_among_rgb);
 
 		Pos end = lightBeam[i].GetBeamEnd();
 		int end_block_type = scene.GetType(end);

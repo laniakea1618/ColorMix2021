@@ -17,16 +17,16 @@ public:
 class Color
 {
 private:
-	int r_;
-	int g_;
-	int b_;
+	double r_;
+	double g_;
+	double b_;
 public:
-	int GetR() const;
-	int GetG() const;
-	int GetB() const;
-	void SetR(int r);
-	void SetG(int g);
-	void SetB(int b);
+	double GetR() const; //range is [0, 1]
+	double GetG() const;
+	double GetB() const;
+	void SetR(double r);
+	void SetG(double g);
+	void SetB(double b);
 };
 
 class Scene
@@ -84,17 +84,17 @@ private:
 	int len_;
 	Color color_;
 public:
-	Beam(int x = 0, int y = 0, int dir = 0, int r = 0, int g = 0, int b = 0);
-	void SetBeam(int x, int y, int dir, int r, int g, int b);
+	Beam(int x = 0, int y = 0, int dir = 0, double r = 0, double g = 0, double b = 0);
+	void SetBeam(int x, int y, int dir, double r, double g, double b);
 	Pos CheckBeamEnd();
 	Pos GetBeamSource() const;
 	Pos GetBeamEnd() const;
 	int GetBeamLen() const;
 	int GetBeamDir() const;
-	int GetBeamColor() const;
-	int GetR() const;
-	int GetG() const;
-	int GetB() const;
+	//int GetBeamColor() const;
+	double GetR() const;
+	double GetG() const;
+	double GetB() const;
 	void ShowBeamInfo() const;
 };
 std::vector <Beam> lightBeam; //번호는 1번부터 시작. i번 beam은 인덱스 i-1에 위치함.
@@ -120,33 +120,33 @@ void Pos::SetY(int y)
 	y_ = y;
 }
 
-int Color::GetR() const
+double Color::GetR() const
 {
 	return r_;
 }
-int Color::GetG() const
+double Color::GetG() const
 {
 	return g_;
 }
-int Color::GetB() const
+double Color::GetB() const
 {
 	return b_;
 }
-void Color::SetR(int r)
+void Color::SetR(double r)
 {
-	if (r != 0 && r != 1)
+	if (r < 0 || r > 1)
 		printf("Pos::SetR Error");
 	r_ = r;
 }
-void Color::SetG(int g)
+void Color::SetG(double g)
 {
-	if (g != 0 && g != 1)
+	if (g < 0 || g > 1)
 		printf("Pos::SetG Error");
 	g_ = g;
 }
-void Color::SetB(int b)
+void Color::SetB(double b)
 {
-	if (b != 0 && b != 1)
+	if (b < 0 || b > 1)
 		printf("Pos::SetB Error");
 	b_ = b;
 }
@@ -340,14 +340,14 @@ int Scene::GetInfo(int x, int y, int dir) const
 	}
 }
 
-Beam::Beam(int x, int y, int dir, int r, int g, int b)
+Beam::Beam(int x, int y, int dir, double r, double g, double b)
 {
 	source_.SetX(x), source_.SetY(y);
 	dir_ = dir;
 	len_ = -1;
 	color_.SetR(r), color_.SetG(g), color_.SetB(b);
 }
-void Beam::SetBeam(int x, int y, int dir, int r, int g, int b)
+void Beam::SetBeam(int x, int y, int dir, double r, double g, double b)
 {
 	source_.SetX(x);
 	source_.SetY(y);
@@ -399,23 +399,23 @@ int Beam::GetBeamDir() const
 {
 	return dir_;
 }
-int Beam::GetBeamColor() const
+/*int Beam::GetBeamColor() const
 {
 	return color_.GetR() * 4 + color_.GetG() * 2 + color_.GetB();
-}
-int Beam::GetR() const
+}*/
+double Beam::GetR() const
 {
 	return color_.GetR();
 }
-int Beam::GetG() const
+double Beam::GetG() const
 {
 	return color_.GetG();
 }
-int Beam::GetB() const
+double Beam::GetB() const
 {
 	return color_.GetB();
 }
 void Beam::ShowBeamInfo() const
 {
-	printf("%d %d %d %d   %d %d %d\n", source_.GetX(), source_.GetY(), dir_, len_, GetR(), GetG(), GetB());
+	printf("%d %d %d %d   %lf %lf %lf\n", source_.GetX(), source_.GetY(), dir_, len_, GetR(), GetG(), GetB());
 }

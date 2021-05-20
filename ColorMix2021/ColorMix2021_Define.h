@@ -8,6 +8,7 @@
 #include <string>
 #include <cmath>
 #include <memory.h>
+#include <algorithm>
 
 const int SCREEN_WIDTH = 1440;
 const int SCREEN_HEIGHT = 720;
@@ -16,6 +17,8 @@ const int MAP_WIDTH = 22, MAP_HEIGHT = 12;
 
 const int X_OFFSET = (SCREEN_WIDTH - 48 * MAP_WIDTH) / 2;
 const int Y_OFFSET = (SCREEN_HEIGHT - 48 * MAP_HEIGHT) / 2;
+
+const double DOUBLE_EPSILON = 0.0001;
 
 /*texture color code #8000ff is for color keying.*/
 /*color code variants: 0x80, 0xb0, 0DOWN_LEFTxff, 0x58*/
@@ -74,4 +77,12 @@ enum block_color
 int divide(int a, int b)
 {
 	return (int)floor((float)a / (float)b);
+}
+
+bool IsSame(double a, double b)
+{
+	if (abs(a - b) < DOUBLE_EPSILON)
+		return true;
+	else
+		return false;
 }

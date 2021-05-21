@@ -8,6 +8,7 @@ private:
 	int x_;
 	int y_;
 public:
+	Pos(int x, int y);
 	int GetX() const;
 	int GetY() const;
 	void SetX(int x);
@@ -21,6 +22,7 @@ private:
 	double g_;
 	double b_;
 public:
+	Color (double r, double g, double b);
 	double GetR() const; //range is [0, 1]
 	double GetG() const;
 	double GetB() const;
@@ -99,6 +101,8 @@ public:
 };
 std::vector <Beam> lightBeam; //번호는 1번부터 시작. i번 beam은 인덱스 i-1에 위치함.
 
+Pos::Pos(int x, int y)
+	:x_(x), y_(y) {}
 int Pos::GetX() const
 {
 	return x_;
@@ -120,6 +124,8 @@ void Pos::SetY(int y)
 	y_ = y;
 }
 
+Color::Color(double r, double g, double b)
+	:r_(r), g_(g), b_(b) {}
 double Color::GetR() const
 {
 	return r_;
@@ -341,12 +347,7 @@ int Scene::GetInfo(int x, int y, int dir) const
 }
 
 Beam::Beam(int x, int y, int dir, double r, double g, double b)
-{
-	source_.SetX(x), source_.SetY(y);
-	dir_ = dir;
-	len_ = -1;
-	color_.SetR(r), color_.SetG(g), color_.SetB(b);
-}
+	:source_(x, y), dir_(dir), end_(0, 0), len_(-1), color_(r, g, b) {}
 void Beam::SetBeam(int x, int y, int dir, double r, double g, double b)
 {
 	source_.SetX(x);

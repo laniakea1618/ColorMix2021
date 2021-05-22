@@ -52,14 +52,17 @@ int main(int argc, char* args[])
 							int xpos, ypos;
 							xpos = divide(mx - X_OFFSET, 48), ypos = divide(my - Y_OFFSET, 48);
 
-							if (scene.GetFixedInfo(xpos, ypos) == 1)
+							if (xpos >= 0 && xpos < MAP_WIDTH && ypos >= 0 && ypos < MAP_HEIGHT)
 							{
-								move.selection = 0x0FFF & scene.GetBlock(xpos, ypos); // get rid of first 4 bits
-							}
-							else if (scene.GetFixedInfo(xpos, ypos) == 0 && scene.GetType(xpos, ypos) != type::WALL)
-							{
-								scene.SetBlock(xpos, ypos, move.selection);
-								change = true;
+								if (scene.GetFixedInfo(xpos, ypos) == 1)
+								{
+									move.selection = 0x0FFF & scene.GetBlock(xpos, ypos); // get rid of first 4 bits
+								}
+								else if (scene.GetFixedInfo(xpos, ypos) == 0 && scene.GetType(xpos, ypos) != type::WALL)
+								{
+									scene.SetBlock(xpos, ypos, move.selection);
+									change = true;
+								}
 							}
 						}
 						break;
